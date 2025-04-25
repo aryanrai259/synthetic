@@ -68,6 +68,12 @@ def main():
     
     print("Preprocessing data...")
     processed_data = data_processor.preprocess_data()
+
+    gpus = tf.config.list_physical_devices('GPU')
+    print("Num GPUs Available:", len(gpus))
+    for gpu in gpus:
+        print("GPU Name:", gpu.name)
+
     
     # Save the preprocessor
     preprocessor_path = os.path.join(args.model_dir, "preprocessor.pkl")
@@ -89,13 +95,14 @@ def main():
     
     # Train GAN
     print(f"Training GAN for {args.epochs} epochs...")
-    gan.train(
-        data=X_train,
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        save_interval=args.save_interval,
-        save_dir=args.model_dir
-    )
+    with tf.device('/GPU:0'):
+        gan.train(
+            data=X_train,
+            epochs=args.epochs,
+            batch_size=args.batch_size,
+            save_interval=args.save_interval,
+            save_dir=args.model_dir
+        )
     
     # Generate synthetic data
     print(f"Generating {args.generate_samples} synthetic samples...")
